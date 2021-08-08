@@ -1,13 +1,31 @@
+from enum import Enum
+
 import uvicorn
-from fastapi import FastAPI
+from fastapi import FastAPI, Path
 
 app = FastAPI()
 
 
-# Your code here
-@app.get('/{id}', status_code=201)
-def hello_world(id: int, parameter: str = 'hola'):
-    return {'content': 'hello world', 'id': id, 'param': parameter}
+class NameTypes(str, Enum):
+    JUAN = 'JUAN'
+    ANTONIO = 'ANTONIO'
+
+
+PEOPLE = {
+    NameTypes.JUAN: {
+        'age': 23,
+        'name': NameTypes.JUAN.value
+    },
+    NameTypes.ANTONIO: {
+        'age': 23,
+        'name': NameTypes.ANTONIO.value
+    }
+}
+
+
+@app.get('/{name}', status_code=201)
+def validate_name(name: NameTypes = Path(..., description='name of the person you want to retrieve the info')):
+    return PEOPLE[name]
 
 
 if __name__ == '__main__':
