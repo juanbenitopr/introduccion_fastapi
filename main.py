@@ -1,37 +1,19 @@
-from enum import Enum
-from typing import Dict, Any
-
 import uvicorn
-from fastapi import FastAPI, Path, Query
+from fastapi import FastAPI
+from pydantic import BaseModel, Field
 
 app = FastAPI()
 
 
-class NameTypes(str, Enum):
-    JUAN = 'JUAN'
-    ANTONIO = 'ANTONIO'
+class Student(BaseModel):
+    id: int
+    name: str
+    age: int = Field(..., gt=0, le=18)
 
 
-PEOPLE = {
-    NameTypes.JUAN: {
-        'age': 23,
-        'name': NameTypes.JUAN.value
-    },
-    NameTypes.ANTONIO: {
-        'age': 23,
-        'name': NameTypes.ANTONIO.value
-    }
-}
-
-
-@app.get('/{name}', status_code=201)
-def validate_name(age: int = Query(10, ge=10, le=100, title='Person Age', description='possible age of the person'),
-                  name: NameTypes = Path(..., title='Person Name',
-                                         description='name of the person you want to retrieve the info'),
-                  ) -> Dict[str, Any]:
-    response = {**PEOPLE[name], 'age_right': PEOPLE[name]['age'] == age}
-
-    return response
+@app.post('/student', response_model=Student, response_model_exclude={'id'})
+def create_stuent(student: Student) -> Student:
+    return student
 
 
 if __name__ == '__main__':
