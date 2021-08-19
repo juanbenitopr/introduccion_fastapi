@@ -1,7 +1,7 @@
 from typing import List
 
 import uvicorn
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 
 app = FastAPI()
@@ -32,7 +32,11 @@ class StudentFilter:
         return self.age == other.age or self.name == other.name
 
 
-@app.get('/student', response_model=List[Student])
+def validate_request(token: str = Header(...)):
+    if token != 'Bearer':
+        raise HTTPException(status_code=401, detail='Token Invalid')
+
+@app.get('/student', response_model=List[Student], dependencies=[Depends(validate_request)])
 def list_students(student_filter: StudentFilter = Depends()) -> List[Student]:
     students = [
         Student(id=1, name='Juan', age=3),
