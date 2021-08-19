@@ -22,14 +22,24 @@ def get_student_name(name: str) -> str:
     return name
 
 
+class StudentFilter:
+
+    def __init__(self, age: int, name: str = Depends(get_student_name)):
+        self.age = age
+        self.name = name
+
+    def __eq__(self, other: 'StudentFilter') -> bool:
+        return self.age == other.age or self.name == other.name
+
+
 @app.get('/student', response_model=List[Student])
-def list_students(name: str = Depends(get_student_name)) -> List[Student]:
+def list_students(student_filter: StudentFilter = Depends()) -> List[Student]:
     students = [
         Student(id=1, name='Juan', age=3),
         Student(id=2, name='Antonio', age=10),
         Student(id=3, name='Alberto', age=12),
     ]
-    return [student for student in students if student.name == name]
+    return [student for student in students if StudentFilter(age=student.age, name=student.name) == student_filter]
 
 
 if __name__ == '__main__':
