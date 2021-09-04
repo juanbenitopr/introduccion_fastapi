@@ -6,6 +6,9 @@ from fastapi import FastAPI, Depends, Header, HTTPException
 from pydantic import BaseModel, Field
 from starlette.requests import Request
 
+from db import Session, get_session, Base, engine
+from models.student import StudentSQL
+
 app = FastAPI()
 
 
@@ -14,10 +17,18 @@ class Student(BaseModel):
     name: str
     age: int = Field(..., gt=0, le=18)
 
+    class Config:
+        orm_mode = True
 
-@app.post('/student', response_model=Student, response_model_exclude={'id'})
-def create_stuent(student: Student) -> Student:
-    return student
+
+@app.post('/student', response_model=Student)
+def create_stuent(student: Student, session: Session = Depends(get_session)) -> Student:
+    student_sql = StudentSQL(name=student.name, age=student.age)
+
+    session.add(student_sql)
+    session.commit()
+
+    return Student.from_orm(student_sql)
 
 
 def get_student_name(name: str) -> str:
@@ -56,6 +67,12 @@ async def add_process_time_header(request: Request, call_next):
     process_time = time() - start_time
     response.headers["X-Process-Time"] = str(process_time)
     return response
+
+
+@app.on_event('startup')
+def create_db():
+    Base.metadata.create_all(bind=engine)
+
 
 if __name__ == '__main__':
     uvicorn.run(app='main:app', reload=True)
