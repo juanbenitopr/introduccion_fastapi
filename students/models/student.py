@@ -1,6 +1,6 @@
 from sqlalchemy import Column, Integer, String
 
-from db import Base
+from students.db import Base
 
 
 class StudentSQL(Base):
