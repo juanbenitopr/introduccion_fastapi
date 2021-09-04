@@ -51,13 +51,10 @@ def validate_request(token: str = Header(...)):
 
 
 @app.get('/student', response_model=List[Student], dependencies=[Depends(validate_request)])
-def list_students(student_filter: StudentFilter = Depends()) -> List[Student]:
-    students = [
-        Student(id=1, name='Juan', age=3),
-        Student(id=2, name='Antonio', age=10),
-        Student(id=3, name='Alberto', age=12),
-    ]
-    return [student for student in students if StudentFilter(age=student.age, name=student.name) == student_filter]
+def list_students(student_filter: StudentFilter = Depends(), session: Session = Depends(get_session)) -> List[Student]:
+    students: List[StudentSQL] = session.query(StudentSQL).filter_by(name=student_filter.name, age=student_filter.age)
+
+    return [Student.from_orm(student) for student in students]
 
 
 @app.middleware("http")
