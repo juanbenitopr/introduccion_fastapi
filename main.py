@@ -13,7 +13,6 @@ app = FastAPI()
 
 
 class Student(BaseModel):
-    id: int
     name: str
     age: int = Field(..., gt=0, le=18)
 
@@ -26,7 +25,8 @@ def create_stuent(student: Student, session: Session = Depends(get_session)) -> 
     student_sql = StudentSQL(name=student.name, age=student.age)
 
     session.add(student_sql)
-    session.commit()
+
+    raise Exception('test')
 
     return Student.from_orm(student_sql)
 
